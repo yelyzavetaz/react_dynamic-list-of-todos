@@ -12,12 +12,20 @@ import { getTodos } from './api';
 import { Todo } from './types/Todo';
 
 export const App: React.FC = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [allTodos, setAllTodos] = useState<Todo[]>([]);
   const [areTodosLoaded, setAreTodosLoaded] = useState(false);
   const [isModalShown, setIsModalShown] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
   const [selectedFilter, setSelectedFilter] = useState('');
   const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    setAreTodosLoaded(false);
+    getTodos().then(todosFromServer => {
+      setAllTodos(todosFromServer);
+      setAreTodosLoaded(true);
+    });
+  }, []);
 
   const getFilteredTodos = (todosFromServer: Todo[]) => {
     let filteredTodos = [...todosFromServer];
@@ -33,24 +41,15 @@ export const App: React.FC = () => {
     if (query) {
       const normalizedQuery = query.trim().toLowerCase();
 
-      filteredTodos = filteredTodos.filter(todo => {
-        return todo.title.toLowerCase().includes(normalizedQuery);
-      });
+      filteredTodos = filteredTodos.filter(todo =>
+        todo.title.toLowerCase().includes(normalizedQuery),
+      );
     }
 
     return filteredTodos;
   };
 
-  useEffect(() => {
-    setAreTodosLoaded(false);
-    getTodos().then(todosFromServer => {
-      const filteredTodos = getFilteredTodos(todosFromServer);
-
-      setTodos(filteredTodos);
-
-      setAreTodosLoaded(true);
-    });
-  }, [selectedFilter, query]);
+  const todos = getFilteredTodos(allTodos);
 
   return (
     <>
